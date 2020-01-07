@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <chrono>
+#include <cmath>
 
 using namespace std;
 
@@ -63,22 +64,23 @@ int main(int argc, const char * argv[])
             input_buffer[i] = c - '0';
         }
         cout << "Processing number with " << number_size << " digits" << endl;
-        vector<unsigned char> output_buffer(number_size);
+        auto output_buffer_size = (size_t)ceil(number_size / 4);
+        vector<uint32_t> output_buffer(output_buffer_size);
         auto start_time = chrono::high_resolution_clock::now();
-        size_t start = number_size - 1;
+        size_t start = output_buffer_size - 1;
         for (size_t i = 0; i < input_buffer.size(); i++)
         {
-            unsigned char carry = input_buffer[i];
-            for (size_t j = number_size - 1; j >= start; j--)
+            uint64_t carry = input_buffer[i];
+            for (size_t j = output_buffer_size - 1; j >= start; j--)
             {
-                auto value = output_buffer[j] * 10 + carry;
-                carry = value / 256;
-                output_buffer[j] = value % 256;
+                uint64_t value = (uint64_t)output_buffer[j] * 10 + carry;
+                carry = value / 4294967296;
+                output_buffer[j] = (uint32_t)(value % 4294967296);
             }
             if (carry > 0)
             {
                 start--;
-                output_buffer[start] = carry;
+                output_buffer[start] = (uint32_t)carry;
             }
         }
         auto finish_time = chrono::high_resolution_clock::now();
@@ -86,7 +88,32 @@ int main(int argc, const char * argv[])
         cout << "Processing time: " << elapsed.count() << " seconds" << endl;
         cout << "Writing " << argv[2] << endl;
         ofstream output_file(argv[2], ios_base::binary);
-        output_file.write((char*)output_buffer.data() + start, number_size - start);
+        size_t shift = 24;
+        if (output_buffer[start] < 256)
+        {
+            shift = 0;
+        }
+        else if (output_buffer[start] < 65536)
+        {
+            shift = 8;
+        }
+        else if (output_buffer[start] < 16777216)
+        {
+            shift = 16;
+        }
+        while (start < output_buffer_size)
+        {
+            output_file.put((output_buffer[start] >> shift) & 255);
+            if (shift == 0)
+            {
+                start++;
+                shift = 24;
+            }
+            else
+            {
+                shift -= 8;
+            }
+        }
         output_file.close();
     }
     catch (exception& e)
