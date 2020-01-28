@@ -52,7 +52,7 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "/Users/heribertodelgado/Projects/pi-billion.txt /Users/heribertodelgado/Projects/pi-billion.bin 2 1000000"
+            argument = "-i /Users/heribertodelgado/Projects/pi-billion.txt -o /Users/heribertodelgado/Projects/pi-billion.bin -s 2 -l 1000000 -t 1:00 -c /Users/heribertodelgado/Projects/pi-billion_cache.bin"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
